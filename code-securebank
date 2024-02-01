@@ -1,0 +1,575 @@
+#include <iostream>
+#include <ctime>
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <string>
+#include <thread>
+using namespace std;
+
+static int count = 0;
+string t_day[5];
+string t_hour[5];
+string t_minute[5];
+
+class login_portal
+{
+	string password;
+	static int account_no;
+	string name;
+	int time;
+	float amt;
+	public:
+		string g;
+		void create()
+	{
+	int choice, x = 0;
+	ofstream outfile; //Creating a output fstream object
+	outfile.open("bank_records.csv", ios::app);//opening the csv file to write
+	cout<<"To create a savings account press 1, for current account, press 2, for opening a new fixed deposit, press 3, to open a new recurring deposit press 4 and to go back press 6"<<endl;
+	cin>>choice;
+	cout<<"Press 5 to confirm your decision"<<endl;
+	cin>>x;
+	if(x !=5)
+	{
+		cout<<"Returning to the login page"<<endl;
+		return;
+	}
+	
+	switch(choice)
+	{
+		case 1:
+			cout<<"Please enter your name"<<endl;
+			cin>>name;
+			cout<<"Your account no. is "<<account_no<<endl;
+			cout<<"Please enter your password"<<endl;
+			cin>>password;
+			outfile<<account_no<<","<<name<<","<<"savings"<<","<<password<<"\n"<<endl;//Writing inside the csv file
+			cout<<"Account successfully created, returning to login page"<<endl;
+			account_no++;
+			return;
+		case 2:
+			cout<<"Please enter your name"<<endl;
+			cin>>name;
+			cout<<"Your account no. is "<<account_no<<endl;
+			cout<<"Please enter your password"<<endl;
+			cin>>password;
+			outfile<<account_no<<","<<name<<","<<"current"<<","<<password<<"\n"<<endl;
+			cout<<"Account successfully created, returning to login page"<<endl;
+			account_no++;
+			return;
+			
+		case 3:
+			cout<<"Please enter your name"<<endl;
+			cin>>name;
+			cout<<"Your account no. is "<<account_no<<endl;
+			cout<<"Please enter your password"<<endl;
+			cin>>password;
+			outfile<<account_no<<","<<name<<","<<"fd"<<","<<password<<"\n"<<endl;
+			cout<<"Please choose the time period for the fd to mature"<<endl;
+			cin>>time;
+			cout<<"Please enter the amount of money that you want to deposit"<<endl;
+			cin>>amt;
+			cout<<"Account successfully created, returning to login page"<<endl;
+			account_no++;
+			return;
+			
+		case 4:
+			cout<<"Please enter your name"<<endl;
+			cin>>name;
+			cout<<"Your account no. is "<<account_no<<endl;
+			cout<<"Please enter your password"<<endl;
+			cin>>password;
+			outfile<<account_no<<","<<name<<","<<"rd"<<","<<password<<"\n"<<endl;
+			cout<<"Account successfully created, returning to login page"<<endl;
+			account_no++;
+			return;
+		case 6:
+			return;
+		}
+	
+	}
+	
+	void login()
+{
+    int count = 0;
+	string x;  
+    ifstream infile;//Creating an input fstream object
+    infile.open("bank_records.csv");//Opening the csv file
+    vector<string> row;//Creating the vector to store the rows of the csv file
+    string line, word, temp;
+    cout << "Enter your account number" << endl;
+    cin >> x; 
+    
+    if(infile.is_open())//traversal loop for the csv file to find and verify the account no. and the password
+    {
+    	while(getline(infile, line))
+    	{
+    		stringstream s(line);
+    		while(getline(s,word,','))
+    		{
+    			row.push_back(word);
+			}
+			            if (x == row[0])
+            {
+                while (true) // Continue asking for the password until successful login
+                {
+                    cout << "Enter your password" << endl;
+                    cin >> password;
+                    
+                    if (password == row[3])
+                    {
+                        g = row[2];
+                        return; // Exit the function when successfully logged in
+                    }
+                    else
+                    {
+                        cout << "Invalid password. Please try again." << endl;
+                    }
+                }
+            }
+        }
+        cout << "Account not found. Please check your account number." << endl;
+    }
+}
+
+string ret_acc();
+friend class account;
+
+};
+
+string login_portal::ret_acc()
+{
+	return g;
+}
+
+int login_portal::account_no = 1;
+
+
+class account
+{
+	protected:
+	int acc_no;
+	int temp = 0;
+	float bal, amt;
+	string amount[50];
+	string t_type[50];
+	public:
+		account()
+		{
+			cout<<"Please enter the amount of balance currently in your account"<<endl;
+			cin>>bal;
+		}
+		virtual void deposit();
+		virtual void withdraw();
+		void view();
+		void store_time();
+		void view_transactions();
+};
+
+void account::store_time()
+{	
+	time_t curr_time;
+	curr_time = time(0);
+	tm *ltm = localtime(&curr_time);
+	t_day[count] = to_string(ltm->tm_mday);
+	t_hour[count] = to_string(ltm->tm_hour); 
+	t_minute[count] = to_string(ltm->tm_min);
+}
+
+void display_time()
+{
+	cout<<"/t"<<t_day[count]<<" : "<<t_hour[count]<<" : "<<t_minute[count]<<endl;
+}
+
+void account::deposit()
+{
+	string x;
+	cout<<"Please enter the amount that you want to deposit inside your account"<<endl;
+	cin>>amt;
+	x = to_string(amt);
+	bal = bal+amt;
+	cout<<"BALANCE : "<<fixed<<bal<<"\n AMOUNT DEPOSITED : "<<amt;
+	t_type[count] = "deposit";
+	amount[count] = "+" + x;
+	store_time();
+	cout<<t_day[count]<<endl;
+	count++;
+	temp++;
+}
+
+void account::withdraw()
+{
+	string x;
+	cout<<"Please enter the amount that you want to withdraw fro your account"<<endl;
+	cin>>amt;
+	x = to_string(amt);
+	bal = bal-amt;
+	cout<<"BALANCE : "<<bal<<"\n AMOUNT WITHDRAWN : "<<amt<<endl;
+	t_type[count] = "withdraw";
+	amount[count] = "-" + x;
+	store_time();
+	count++;
+	temp++;
+}
+
+void account::view()
+{
+	cout<<"BALANCE : "<<fixed<<bal<<endl;
+}
+
+void account::view_transactions()
+{
+	time_t curr_time;
+	curr_time = time(NULL);
+
+	tm *ltm = localtime(&curr_time);
+	int x =0;
+	cout<<"YEAR : \t" <<1900 + ltm->tm_year<<" MONTH : "<<ltm->tm_mon<<endl;
+	cout<<"S.NO \t T_TYPE \t AMOUNT \t DAY : \t HOUR : \t MINUTE "<<endl;
+	while (x<count)
+	{
+		cout<<x+1<<") \t"<<t_type[x]<<"\t \t"<<amount[x]<<"\t \t"<<t_day[x] <<": \t"<< t_hour[x] <<": \t" <<t_minute[x]<<endl;
+		x++;
+	}
+}
+
+class savings:public account
+{
+		
+	public:
+		bool compounding = true;
+		const float interest = 4.5;
+		
+		void startcompounding()
+		{
+			float interestamt;
+			while(compounding)
+			{
+				interestamt = (bal*interest)/100;
+				bal = bal+interestamt;
+
+				this_thread::sleep_for(chrono::seconds((1)));
+			}
+		}
+		void withdraw()
+		{
+			
+			string x;
+			cout<<"Please enter the amount that you want to withdraw from your account"<<endl;
+			cin>>amt;
+			if(amt>bal) {
+				cout<<"You cannot withdraw more money than your balance"<<endl;
+				return;
+			}
+			x = to_string(amt);
+			bal = bal-amt;
+			cout<<"BALANCE : "<<fixed<<bal<<"\n AMOUNT WITHDRAWN : "<<fixed<<amt<<endl;
+			t_type[count] = "withdraw";
+			amount[count] = "-" + x;
+			store_time();
+			count++;
+			}
+};
+class fd:public account
+{
+	int seconds = 0;
+	public:
+		bool compounding = true;
+		float interest = 0.13;
+		int maturity;
+		fd()
+		{
+			cout<<"Please enter the maturiry period of the fd in seconds"<<endl;
+			cin>>maturity;
+		}
+		void startcompounding()
+		{
+			float interestamt;
+			while(compounding && seconds<=maturity)
+			{
+				interestamt = (bal*interest)/100;
+				bal = bal+interestamt;
+
+				this_thread::sleep_for(chrono::seconds((1)));
+				seconds++;
+			}
+		}
+		void withdraw(int maturity) {
+			char choice;
+			float deduct;
+			if(seconds <maturity) {
+				cout<<"The fd is not mature yet, do you still want to withdraw the money? 69% of it will be deducted as punishment"<<endl;
+				cout<<"Enter y to withdraw, or anything else to exit"<<endl;
+				cin>>choice;
+				if(choice == 'y') {
+					deduct = (bal * 69)/100;
+					bal = bal - deduct;
+					cout<<fixed<<bal<<" Successfully withdrawn"<<endl;
+					bal = 0;
+				} else {
+					return;
+				}
+			} else {
+				cout<<fixed<<bal<<"Successfully withdrawn";
+			}
+			bal = 0;
+			store_time();
+			count++;
+		}
+		void deposit() {
+			if(bal == 0) {
+				cout<<"You can now deposit more money into the fd"<<endl;
+				cout<<"Please enter the amount of money to deposit"<<endl;
+				cin>>amt;
+				bal = bal+amt;
+			} else {
+				cout<<"You cannot deposit now since your earlier fd has not matured yet"<<endl;
+			}
+			store_time();
+			count++;
+		}
+};
+
+class rd:public account
+{
+	public:
+		bool compounding = true;
+		float interest = 0.13;
+		int maturity;
+		int seconds = 0;
+		int t;
+		rd()
+		{
+			cout<<"Please enter the maturiry period of the rd in seconds"<<endl;
+			cin>>maturity;
+			cout<<"Please enter the time period in seconds"<<endl;
+			cin>>t;
+		}
+		void startcompounding()
+		{
+			int y;
+			y = bal;
+			float interestamt;
+			while(compounding && seconds<=maturity)
+			{
+				if(seconds % t == 0)
+				{
+					bal +=y;
+				}
+				interestamt = (bal*interest)/100;
+				bal = bal+interestamt;
+
+				this_thread::sleep_for(chrono::seconds((1)));
+				seconds++;
+			}
+		}
+		void withdraw(int maturity) {
+			char choice;
+			float deduct;
+			if(seconds <maturity) {
+				cout<<"The rd is not mature yet, do you still want to withdraw the money? 69% of it will be deducted as punishment"<<endl;
+				cout<<"Enter y to withdraw, or anything else to exit"<<endl;
+				cin>>choice;
+				if(choice == 'y') {
+					deduct = (bal * 69)/100;
+					bal = bal - deduct;
+					cout<<fixed<<bal<<" Successfully withdrawn"<<endl;
+					bal = 0;
+				} else {
+					return;
+				}
+			} else {
+				cout<<fixed<<bal<<"Successfully withdrawn";
+			}
+			bal = 0;
+			store_time();
+			count++;
+		}
+		void deposit() {
+			if(bal == 0) {
+				cout<<"You can now deposit more money into the rd"<<endl;
+				cout<<"Please enter the amount of money to deposit"<<endl;
+				cin>>amt;
+				bal = bal+amt;
+			} else {
+				cout<<"You cannot deposit now since your earlier rd has not matured yet"<<endl;
+			}
+			store_time();
+			count++;
+		}
+};
+
+
+int main()
+{
+	int choice_acc;
+	char choice = 'y';
+	cout<<"Welcome to our login page :)"<<endl;
+	login_portal a;
+	while(choice == 'y')
+	{
+		choice = 'n';
+		cout<<"Press 1 to create a new account and 2 to login"<<endl;
+		cin>>choice_acc;
+	if(choice_acc == 1)
+	{
+		a.create();
+		cout<<"Press y to continue"<<endl;
+		cin>>choice;
+	}
+	else if(choice_acc == 2)
+	{
+		a.login();
+	}
+	}
+	char choice2;
+	int x;
+	cout<<"SUCCESSFULLY LOGGED IN \n \n"<<"Welcome to your account :)"<<endl;
+	choice2 = 'y';
+	if(a.g == "savings")
+	{
+		savings b;
+		thread interestcal(&savings::startcompounding, &b);
+		while(choice2 == 'y')
+	{
+		choice2 = 'n';
+		cout<<"Please enter 1 to withdraw \n\n 2 to deposit \n\n 3 to view your current balance \n\n 4 to view your transaction history \n\n 5 to exit back to the login page"<<endl;
+		cin>>x;
+		switch(x)
+		{
+			case 1:
+				b.withdraw();
+				cout<<"AMOUNT SUCCESSFULLY WITHDRAWN"<<endl;
+				break;
+			
+			case 2:
+				b.deposit();
+				cout<<"AMOUNT SUCCESSFULLY DEPOSITED"<<endl;
+				break;
+				
+			case 3:
+				b.view();
+				break;
+			
+			case 4:
+				b.view_transactions();
+				break;
+				
+			case 5:
+				b.compounding = false;
+				interestcal.join();
+				break;
+			
+		}
+		cout<<"Do you want to repeat the bank functions? \n Enter y or n."<<endl;
+		cin>>choice2;
+	}
+	}
+	else if(a.g == "current")
+	{
+		account b;
+		while(choice2 == 'y')
+	{
+		choice2 = 'n';
+		cout<<"Please enter:\n 1 to withdraw \n\n 2 to deposit \n\n 3 to view your current balance \n\n 4 to view your transaction history \n\n 5 to exit back to the login page"<<endl;
+		cin>>x;
+		switch(x)
+		{
+			case 1:
+				b.withdraw();
+				cout<<"AMOUNT SUCCESSFULLY WITHDRAWN"<<endl;
+				break;
+			
+			case 2:
+				b.deposit();
+				cout<<"AMOUNT SUCCESSFULLY DEPOSITED"<<endl;
+				break;
+				
+			case 3:
+				b.view();
+				break;
+			
+			case 4:
+				b.view_transactions();
+				break;
+				
+			case 5:
+				break;
+			
+		}
+		cout<<"Do you want to repeat the bank functions? \n Enter y or n."<<endl;
+		cin>>choice2;
+	}
+}
+	else if(a.g == "fd")
+	{
+		fd b;
+		thread interestcal2(&fd::startcompounding, &b);
+		while(choice2 == 'y')
+	{
+		choice2 = 'n';
+		cout<<"Please enter 1 to withdraw \n\n 2 to deposit \n\n 3 to view your current balance \n\n 4 to exit back to login page"<<endl;
+		cin>>x;
+		switch(x)
+		{
+			case 1:
+				b.withdraw(b.maturity);
+				cout<<"AMOUNT SUCCESSFULLY WITHDRAWN"<<endl;
+				break;
+			
+			case 2:
+				b.deposit();
+				cout<<"AMOUNT SUCCESSFULLY DEPOSITED"<<endl;
+				break;
+				
+			case 3:
+				b.view();
+				break;
+			
+			case 4:
+				b.compounding = false;
+				interestcal2.join();
+				break;
+			
+		}
+		cout<<"Do you want to repeat the bank functions? \n Enter y or n"<<endl;
+		cin>>choice2;
+	}
+}
+	else if(a.g == "rd")
+	{
+		rd b;
+		thread interestcal3(&rd::startcompounding, &b);
+		while(choice2 == 'y')
+	{
+		choice2 = 'n';
+		cout<<"Please enter 1 to withdraw \n\n 2 to deposit \n\n 3 to view your current balance \n\n 4 to exit back to the login page"<<endl;
+		cin>>x;
+		switch(x)
+		{
+			case 1:
+				b.withdraw(b.maturity);
+				cout<<"AMOUNT SUCCESSFULLY WITHDRAWN"<<endl;
+				break;
+			
+			case 2:
+				b.deposit();
+				cout<<"AMOUNT SUCCESSFULLY DEPOSITED"<<endl;
+				break;
+				
+			case 3:
+				b.view();
+				break;
+			
+			case 4:
+				b.compounding = false;
+				interestcal3.join();
+				break;
+			
+		}
+		cout<<"Do you want to repeat the bank functions? \n Enter y or n."<<endl;
+		cin>>choice2;
+	}	
+}
+}
